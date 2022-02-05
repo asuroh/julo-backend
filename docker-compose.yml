@@ -1,0 +1,15 @@
+version: '3.6'
+services:
+ julo-backend:
+  container_name: julo-backend
+  image: julo-backend:latest
+  restart: always
+  hostname: julo-backend
+  ports:
+      - "8910:3000"
+networks:
+  default:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.191.38.0/24

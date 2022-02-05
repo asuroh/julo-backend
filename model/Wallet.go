@@ -20,7 +20,7 @@ type IWallet interface {
 	FindBalanceByOwen(ownedBy string) (int, error)
 	FindByOwen(ownedBy string) (WalletEntity, error)
 	Store(body viewmodel.WalletEnableVM) (string, error)
-	Update(body viewmodel.WalletVM) (string, error)
+	Update(body viewmodel.WalletVM) (string, int, error)
 	MinusBalance(ownedBy string, amount int) (string, error)
 	PlusBalance(ownedBy string, amount int) (string, error)
 }
@@ -114,11 +114,11 @@ func (model walletModel) Store(body viewmodel.WalletEnableVM) (res string, err e
 }
 
 // Update ...
-func (model walletModel) Update(body viewmodel.WalletVM) (res string, err error) {
-	sql := `UPDATE "wallet" SET "status" = $1, "disabled_at" = $2, "enabled_at" = $3 WHERE "owned_by" = $4 RETURNING "id"`
-	err = model.DB.QueryRow(sql, body.Status, newNullString(body.DisabledAt), newNullString(body.EnabledAt), body.OwnedBy).Scan(&res)
+func (model walletModel) Update(body viewmodel.WalletVM) (id string, balance int, err error) {
+	sql := `UPDATE "wallet" SET "status" = $1, "disabled_at" = $2, "enabled_at" = $3 WHERE "owned_by" = $4 RETURNING "id", "balance"`
+	err = model.DB.QueryRow(sql, body.Status, newNullString(body.DisabledAt), newNullString(body.EnabledAt), body.OwnedBy).Scan(&id, &balance)
 
-	return res, err
+	return id, balance, err
 }
 
 // MinusBalance ...

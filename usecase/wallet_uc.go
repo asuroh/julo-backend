@@ -91,6 +91,17 @@ func (uc WalletUC) Disable(customerxID string) (res viewmodel.WalletDisbleVM, er
 		ctx = "WalletUC.Disable"
 	)
 
+	m := model.NewWalletModel(uc.DB, uc.Tx)
+	status, err := m.FindStatusByOwen(customerxID)
+	if err != nil {
+		logruslogger.Log(logruslogger.ErrorLevel, err.Error(), ctx, "WalletExist", uc.ReqID)
+		return res, err
+	}
+
+	if status == helper.StatusDisabled && status != "" {
+		return res, errors.New(helper.Disabled)
+	}
+
 	data, err := uc.Update(&request.WalletUpdateRequest{CustomerxID: customerxID, Status: helper.StatusDisabled, DisabledAt: time.Now().Format(time.RFC3339)})
 	if err != nil {
 		logruslogger.Log(logruslogger.ErrorLevel, err.Error(), ctx, "Update", uc.ReqID)
@@ -141,7 +152,7 @@ func (uc WalletUC) Update(req *request.WalletUpdateRequest) (res viewmodel.Walle
 	}
 
 	m := model.NewWalletModel(uc.DB, uc.Tx)
-	res.ID, err = m.Update(res)
+	res.ID, res.Balance, err = m.Update(res)
 	if err != nil {
 		logruslogger.Log(logruslogger.ErrorLevel, err.Error(), ctx, "Update", uc.ReqID)
 		return res, err
